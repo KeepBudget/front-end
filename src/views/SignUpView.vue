@@ -139,7 +139,7 @@ export default {
 
     const clickSignUpBtn = () => {
       router.push({
-        name: 'realPrice',
+        name: 'real-price',
       });
     };
 
