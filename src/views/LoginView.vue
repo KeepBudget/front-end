@@ -1,9 +1,14 @@
 <template>
-  <div id="home-view">
+  <div id="login-view">
     <CommonHeader />
-    <div id="home-view-content">
+    <div id="login-view-content">
       <img src="@/assets/png/character.png" alt="캐릭터" />
-      <CommonInput :placeHolder="nicknamePlaceHolder" type="text" @changeInput="changeNickname" :value="nickname" />
+      <CommonInput
+        :placeHolder="nicknamePlaceHolder"
+        type="text"
+        @changeInput="changeNickname"
+        :value="nickname"
+      />
       <CommonBtn01 text="로그인" :clickFunc="clickLoginBtn" />
       <CommonBtn01 text="회원가입" :clickFunc="clickSignUpBtn" />
     </div>
@@ -56,7 +61,7 @@ export default {
 </script>
 
 <style scoped>
-#home-view {
+#login-view {
   padding: 20px;
   width: 100vw;
   height: 100vh;
@@ -65,7 +70,7 @@ export default {
   flex-direction: column;
 }
 
-#home-view-content {
+#login-view-content {
   width: 100%;
   flex-grow: 1;
   display: flex;
