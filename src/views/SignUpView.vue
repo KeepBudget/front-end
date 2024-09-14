@@ -1,56 +1,30 @@
 <template>
+  <CommonPopup :message="modalText" :clickBtn="modalFunc" v-if="isModal" />
   <div id="signUp-view">
     <CommonHeader />
     <div class="element">
       <div class="label">닉네임</div>
-      <CommonInput
-        :placeHolder="nicknamePlaceHolder"
-        type="text"
-        @changeInput="changeNickname"
-        :value="nickname"
-      />
+      <CommonInput :placeHolder="nicknamePlaceHolder" type="text" @changeInput="changeNickname" :value="nickname" />
     </div>
     <div class="element">
       <div class="label">희망 지역</div>
-      <CommonDistricts
-        :selectedId="wishDistrictId"
-        @changeItem="changeDistrict"
-        :items="districts"
-      />
+      <CommonDistricts :selectedId="wishDistrictId" @changeItem="changeDistrict" :items="districts" />
     </div>
     <div class="element">
       <div class="label">희망 집 유형</div>
-      <CommonDistricts
-        :selectedId="wishPropertyType"
-        @changeItem="changePropertyType"
-        :items="propertyTypes"
-      />
+      <CommonDistricts :selectedId="wishPropertyType" @changeItem="changePropertyType" :items="propertyTypes" />
     </div>
     <div class="element">
       <div class="label">희망 거래 유형</div>
-      <CommonDistricts
-        :selectedId="wishTradeType"
-        @changeItem="changeTradeType"
-        :items="tradeTypes"
-      />
+      <CommonDistricts :selectedId="wishTradeType" @changeItem="changeTradeType" :items="tradeTypes" />
     </div>
     <div class="element">
       <div class="label">희망 가격</div>
-      <CommonInput
-        :placeHolder="pricePlaceHolder"
-        type="number"
-        @changeInput="changeWishPrice"
-        :value="wishPrice"
-      />
+      <CommonInput :placeHolder="pricePlaceHolder" type="number" @changeInput="changeWishPrice" :value="wishPrice" />
     </div>
     <div class="element">
       <div class="label">희망 평수</div>
-      <CommonInput
-        :placeHolder="sizePlaceHolder"
-        type="number"
-        @changeInput="changeWishSize"
-        :value="wishSize"
-      />
+      <CommonInput :placeHolder="sizePlaceHolder" type="number" @changeInput="changeWishSize" :value="wishSize" />
     </div>
     <div class="element">
       <CommonBtn01 text="회원가입" :clickFunc="clickSignUpBtn" />
@@ -63,8 +37,11 @@ import CommonHeader from '@/components/CommonHeader.vue';
 import CommonInput from '@/components/CommonInput.vue';
 import CommonDistricts from '@/components/CommonDistricts.vue';
 import CommonBtn01 from '@/components/CommonBtn01.vue';
-import { reactive, ref } from 'vue';
+import CommonPopup from '@/components/CommonPopup.vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { fetchDistricts } from '@/libs/apis/district';
+import { signUpUser } from '@/libs/apis/user';
 
 export default {
   components: {
@@ -72,6 +49,7 @@ export default {
     CommonInput,
     CommonDistricts,
     CommonBtn01,
+    CommonPopup,
   },
   setup() {
     const router = useRouter();
@@ -85,29 +63,24 @@ export default {
 
     // 희망 지역
     const wishDistrictId = ref(null);
-    const districts = reactive([
-      //TODO 지역 가져오기
-      { id: 1, name: '강남구' },
-      { id: 2, name: '강서구' },
-      { id: 3, name: '강북구' },
-      { id: 4, name: '송파구' },
-      { id: 5, name: '광진구' },
-      { id: 6, name: '서대문구' },
-      { id: 7, name: '동대문구' },
-      { id: 8, name: '서초구' },
-      { id: 9, name: '종로구' },
-      { id: 10, name: '종구' },
-      { id: 11, name: '용산구' },
-    ]);
+    const districts = reactive([]);
     const changeDistrict = id => {
       wishDistrictId.value = id;
     };
+
+    onMounted(async () => {
+      const fetchedDistricts = await fetchDistricts();
+      fetchedDistricts.response.forEach(district => {
+        districts.push(district);
+      });
+    });
 
     // 희망 집 유형
     const wishPropertyType = ref(null);
     const propertyTypes = reactive([
       { id: 'APARTMENT', name: '아파트' },
       { id: 'OFFICETEL', name: '오피스텔' },
+      { id: 'MULTIPLEX_HOUSING', name: '연립다주택' },
     ]);
     const changePropertyType = id => {
       wishPropertyType.value = id;
@@ -131,16 +104,66 @@ export default {
     };
 
     // 희망 평수
-    const sizePlaceHolder = '희망 평수를 입력하세요(단위 : 평수)';
+    const sizePlaceHolder = '희망 평  수를 입력하세요(단위 : 평수)';
     const wishSize = ref(null);
     const changeWishSize = value => {
       wishSize.value = value;
     };
 
-    const clickSignUpBtn = () => {
-      router.push({
-        name: 'real-price',
-      });
+    const isModal = ref(false);
+    const modalText = ref('');
+    const modalFunc = () => {
+      isModal.value = false;
+    };
+
+    const validateInputs = () => {
+      if (nickname.value === null || nickname.value === '') {
+        isModal.value = true;
+        modalText.value = '닉네임 입력은 필수입니다.';
+        return false;
+      } else if (wishDistrictId.value === null) {
+        isModal.value = true;
+        modalText.value = '희망 지역 선택은 필수입니다.';
+        return false;
+      } else if (wishPropertyType.value === null) {
+        isModal.value = true;
+        modalText.value = '희망 집 유형 선택은 필수입니다.';
+        return false;
+      } else if (wishTradeType.value === null) {
+        isModal.value = true;
+        modalText.value = '희망 거래 유형 선택은 필수입니다.';
+        return false;
+      } else if (wishPrice.value === null) {
+        isModal.value = true;
+        modalText.value = '희망 가격 입력은 필수입니다.';
+        return false;
+      } else if (wishSize.value === null) {
+        isModal.value = true;
+        modalText.value = '희망 평수 입력은 필수입니다.';
+        return false;
+      }
+      return true;
+    };
+
+    const clickSignUpBtn = async () => {
+      const validatedInputs = validateInputs();
+      if (!validatedInputs) return;
+      const signUpRes = await signUpUser(
+        nickname.value,
+        wishDistrictId.value,
+        wishPropertyType.value,
+        wishTradeType.value,
+        wishPrice.value,
+        wishSize.value,
+      );
+      if (signUpRes.success) {
+        router.push({
+          name: 'real-price',
+        });
+      } else {
+        isModal.value = true;
+        modalText.value = signUpRes.error.errorMessage;
+      }
     };
 
     return {
@@ -163,6 +186,9 @@ export default {
       wishSize,
       changeWishSize,
       clickSignUpBtn,
+      isModal,
+      modalText,
+      modalFunc,
     };
   },
 };
