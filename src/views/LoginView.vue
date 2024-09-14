@@ -1,4 +1,5 @@
 <template>
+  <CommonPopup :message="modalText" :clickBtn="modalFunc" v-if="isModal" />
   <div id="login-view">
     <CommonHeader />
     <div id="login-view-content">
@@ -19,14 +20,18 @@
 import CommonHeader from '@/components/CommonHeader.vue';
 import CommonInput from '@/components/CommonInput.vue';
 import CommonBtn01 from '@/components/CommonBtn01.vue';
+import CommonPopup from '@/components/CommonPopup.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { loginUser } from '@/libs/apis/user';
+import { useUserStore } from '@/stores/user';
 
 export default {
   components: {
     CommonHeader,
     CommonInput,
     CommonBtn01,
+    CommonPopup,
   },
   setup() {
     const router = useRouter();
@@ -37,9 +42,28 @@ export default {
       nickname.value = value;
     };
 
-    const clickLoginBtn = () => {
-      console.log(nickname.value);
-      console.log('login btn');
+    const isModal = ref(false);
+    const modalText = ref('');
+    const modalFunc = () => {
+      isModal.value = false;
+    };
+
+    const store = useUserStore();
+
+    const clickLoginBtn = async () => {
+      if (nickname.value === '') {
+        isModal.value = true;
+        modalText.value = '닉네임을 입력해주세요';
+      }
+      const loginRes = await loginUser(nickname.value);
+      if (loginRes.success) {
+        router.push({
+          name: 'real-price',
+        });
+      } else {
+        isModal.value = true;
+        modalText.value = loginRes.error.errorMessage;
+      }
       nickname.value = '';
     };
 
@@ -55,6 +79,9 @@ export default {
       changeNickname,
       clickLoginBtn,
       clickSignUpBtn,
+      isModal,
+      modalText,
+      modalFunc,
     };
   },
 };
