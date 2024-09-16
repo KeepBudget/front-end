@@ -26,6 +26,11 @@ const router = createRouter({
       component: SignUpView,
     },
     {
+      path: '/users/edit',
+      name: 'userEdit',
+      component: SignUpView,
+    },
+    {
       path: '',
       component: NavLayoutView,
       children: [

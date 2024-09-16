@@ -19,7 +19,7 @@
       <CommonDistricts :selectedId="wishTradeType" @changeItem="changeTradeType" :items="tradeTypes" />
     </div>
     <div class="element">
-      <div class="label">희망 가격</div>
+      <div class="label">희망 가격(단위 : 만원)</div>
       <CommonInput :placeHolder="pricePlaceHolder" type="number" @changeInput="changeWishPrice" :value="wishPrice" />
     </div>
     <div class="element">
@@ -27,7 +27,7 @@
       <CommonInput :placeHolder="sizePlaceHolder" type="number" @changeInput="changeWishSize" :value="wishSize" />
     </div>
     <div class="element">
-      <CommonBtn01 text="회원가입" :clickFunc="clickSignUpBtn" />
+      <CommonBtn01 :text="btnText" :clickFunc="clickBtn" />
     </div>
   </div>
 </template>
@@ -39,9 +39,14 @@ import CommonDistricts from '@/components/CommonDistricts.vue';
 import CommonBtn01 from '@/components/CommonBtn01.vue';
 import CommonPopup from '@/components/CommonPopup.vue';
 import { onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { fetchDistricts } from '@/libs/apis/district';
-import { signUpUser } from '@/libs/apis/user';
+import {
+  fetchUser,
+  fetchUserRaw,
+  signUpUser,
+  updateUser,
+} from '@/libs/apis/user';
 
 export default {
   components: {
@@ -53,6 +58,9 @@ export default {
   },
   setup() {
     const router = useRouter();
+    const route = useRoute();
+
+    const btnText = ref('회원가입');
 
     // 닉네임
     const nicknamePlaceHolder = '닉네임을 입력하세요';
@@ -73,6 +81,16 @@ export default {
       fetchedDistricts.response.forEach(district => {
         districts.push(district);
       });
+      if (route.path === '/users/edit') {
+        const userRes = await fetchUserRaw();
+        nickname.value = userRes.response.nickname;
+        wishDistrictId.value = userRes.response.wishDistrictId;
+        wishPropertyType.value = userRes.response.wishPropertyType;
+        wishTradeType.value = userRes.response.wishTradeType;
+        wishPrice.value = userRes.response.wishPropertyPrice;
+        wishSize.value = userRes.response.wishPropertySize;
+        btnText.value = '수정하기';
+      }
     });
 
     // 희망 집 유형
@@ -145,25 +163,50 @@ export default {
       return true;
     };
 
-    const clickSignUpBtn = async () => {
+    const clickBtn = async () => {
       const validatedInputs = validateInputs();
       if (!validatedInputs) return;
-      const signUpRes = await signUpUser(
-        nickname.value,
-        wishDistrictId.value,
-        wishPropertyType.value,
-        wishTradeType.value,
-        wishPrice.value,
-        wishSize.value,
-      );
-      if (signUpRes.success) {
-        router.push({
-          name: 'real-price',
-        });
-      } else {
-        isModal.value = true;
-        modalText.value = signUpRes.error.errorMessage;
+      if (route.path === '/users/edit') {
+        await updateUser();
+      } else {  
+        await clickSignupBtn();
       }
+
+      const updateUser = async () => {
+        const res = await updateUser(
+          nickname.value,
+          wishDistrictId.value,
+          wishPropertyType.value,
+          wishTradeType.value,
+          wishPrice.value,
+          wishSize.value,
+        );
+        if (res.success) {
+          router.go(-1);
+        } else {
+          isModal.value = true;
+          modalText.value = res.error.errorMessage;
+        }
+      };
+
+      const clickSignupBtn = async () => {
+        const res = await signUpUser(
+          nickname.value,
+          wishDistrictId.value,
+          wishPropertyType.value,
+          wishTradeType.value,
+          wishPrice.value,
+          wishSize.value,
+        );
+        if (res.success) {
+          router.push({
+            name: 'real-price',
+          });
+        } else {
+          isModal.value = true;
+          modalText.value = res.error.errorMessage;
+        }
+      };
     };
 
     return {
@@ -185,10 +228,11 @@ export default {
       sizePlaceHolder,
       wishSize,
       changeWishSize,
-      clickSignUpBtn,
+      clickBtn,
       isModal,
       modalText,
       modalFunc,
+      btnText,
     };
   },
 };

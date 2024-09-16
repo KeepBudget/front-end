@@ -35,9 +35,41 @@ export const signUpUser = async (
   }
 };
 
+export const updateUser = async (
+  nickname,
+  wishDistrictId,
+  wishPropertyType,
+  wishTradeType,
+  wishPropertyPrice,
+  wishPropertySize,
+) => {
+  try {
+    const res = await instance.put('/users', {
+      nickname,
+      wishDistrictId,
+      wishPropertyType,
+      wishTradeType,
+      wishPropertyPrice,
+      wishPropertySize,
+    });
+    return res.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export const fetchUser = async () => {
   try {
     const res = await instance.get('/users');
+    return res.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
+export const fetchUserRaw = async () => {
+  try {
+    const res = await instance.get('/users/raw');
     return res.data;
   } catch (error) {
     return error.response.data;

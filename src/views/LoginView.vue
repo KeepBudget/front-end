@@ -24,7 +24,6 @@ import CommonPopup from '@/components/CommonPopup.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { loginUser } from '@/libs/apis/user';
-import { useUserStore } from '@/stores/user';
 
 export default {
   components: {
@@ -47,8 +46,6 @@ export default {
     const modalFunc = () => {
       isModal.value = false;
     };
-
-    const store = useUserStore();
 
     const clickLoginBtn = async () => {
       if (nickname.value === '') {

@@ -6,7 +6,11 @@
         <div id="user-header-text">
           <span>{{ user.nickname }}님</span>의 희망사항
         </div>
-        <img src="@/assets/png/userEdit.png" alt="editBtn" />
+        <img
+          src="@/assets/png/userEdit.png"
+          alt="editBtn"
+          @click="clickUserEdit"
+        />
       </div>
       <div id="user-body">
         <div id="user-body-text">
@@ -22,7 +26,11 @@
       </div>
     </div>
     <div id="properties" @scroll="handlePropertiesScroll">
-      <RecommendProperty v-for="property in properties" :key="property.id" :property="property" />
+      <RecommendProperty
+        v-for="property in properties"
+        :key="property.id"
+        :property="property"
+      />
     </div>
   </div>
 </template>
@@ -32,6 +40,7 @@ import CommonHeader from '@/components/CommonHeader.vue';
 import RecommendProperty from '@/components/RecommendProperty.vue';
 import { fetchProperties } from '@/libs/apis/property';
 import { fetchUser } from '@/libs/apis/user';
+import { useRouter } from 'vue-router';
 import { onMounted, reactive, ref } from 'vue';
 
 export default {
@@ -40,6 +49,8 @@ export default {
     RecommendProperty,
   },
   setup() {
+    const router = useRouter();
+
     const user = ref({});
     const properties = reactive([]);
     const page = ref(1);
@@ -72,10 +83,17 @@ export default {
       }
     };
 
+    const clickUserEdit = () => {
+      router.push({
+        name: 'userEdit',
+      });
+    };
+
     return {
       user,
       properties,
       handlePropertiesScroll,
+      clickUserEdit,
     };
   },
 };
