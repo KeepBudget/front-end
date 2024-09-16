@@ -1,24 +1,43 @@
 <template>
-  <div id="news-component">
-    <div id="news-img">img</div>
+  <div id="news-component" @click="clickNewsComponent(news.originUrl)">
+    <img id="news-img" :src="news.imgUrl" v-show="news.imgUrl !== null" />
     <div id="news-content">
       <div id="news-title">
-        뉴스 제목 뉴스 제목 뉴스 제목 뉴스 제목 뉴스 제목 뉴스 제목 뉴스 제목
-        뉴스 제목
+        {{ news.title }}
       </div>
       <div id="news-summary">
-        뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스
-        요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~뉴스 요약~~
+        {{ news.summary }}
       </div>
-      <div>(신문사) (신문시간)</div>
+      <div>{{ news.press }} {{ changeNewsFormat(news.date) }}</div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+  props: {
+    news: {
+      type: Object,
+    },
+  },
   setup() {
-    return {};
+    const changeNewsFormat = newsDate => {
+      const date = new Date(newsDate);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `⏲️ ${year}.${month}.${day}. ${hours}:${minutes}`;
+    };
+
+    const clickNewsComponent = originUrl => {
+      window.open(originUrl, '_blank');
+    };
+    return {
+      changeNewsFormat,
+      clickNewsComponent,
+    };
   },
 };
 </script>

@@ -3,24 +3,21 @@
     <CommonHeader />
     <div id="user">
       <div id="user-header">
-        <div id="user-header-text"><span>홍길동님</span>의 희망지역</div>
+        <div id="user-header-text">
+          <span>{{ user.nickname }}님</span>의 희망지역
+        </div>
         <img src="@/assets/png/userEdit.png" alt="editBtn" />
       </div>
       <div id="user-body">
         <div id="user-body-text">
-          <div>서울시 강남구</div>
+          <div>서울시 {{ user.wishDistrict }}</div>
         </div>
       </div>
     </div>
-    <div id="accident-keyword">키워드 넣기</div>
-    <div id="news-list">
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
+    <vue3-word-cloud style="height: 200px; width: 100%; padding: 3px" :words="keywords"
+      :color="([, weight]) => colorByWeight(weight)" font-family="Roboto" font-size-ratio="3" />
+    <div id="news-list" @scroll="handleNewsListScroll">
+      <NewsComponent v-for="news in newsList" :key="news.id" :news="news" />
     </div>
   </div>
 </template>
@@ -28,14 +25,78 @@
 <script>
 import CommonHeader from '@/components/CommonHeader.vue';
 import NewsComponent from '@/components/NewsComponent.vue';
+import { fetchNewsKeywords, fetchNewsList } from '@/libs/apis/news';
+import { fetchUser } from '@/libs/apis/user';
+import { onMounted, reactive, ref } from 'vue';
+import vue3WordCloud from 'vue3-word-cloud';
 
 export default {
   components: {
     CommonHeader,
     NewsComponent,
+    vue3WordCloud,
   },
   setup() {
-    return {};
+    const user = ref({});
+    const newsList = reactive([]);
+    const page = ref(1);
+    const totalCount = ref(null);
+    const keywords = reactive([]);
+
+    const addNewsList = async () => {
+      const fetchedNewsList = await fetchNewsList(page.value, 20, 'ACCIDENT');
+      totalCount.value = fetchedNewsList.response.pageNation.totalCount;
+      console.log(fetchedNewsList.response);
+      fetchedNewsList.response.news.forEach(news => {
+        newsList.push(news);
+      });
+      page.value += 1;
+    };
+
+    onMounted(async () => {
+      const userRes = await fetchUser();
+      user.value = userRes.response;
+      await addNewsList();
+      const fetchedNewsKeywords = await fetchNewsKeywords();
+      console.log(fetchedNewsKeywords.response);
+      fetchedNewsKeywords.response.forEach(news => {
+        keywords.push([news.name, Number(news.value)]);
+      });
+    });
+
+    const handleNewsListScroll = async e => {
+      const { scrollHeight, scrollTop, clientHeight } = e.target;
+      const isAtTheBottom = scrollHeight === scrollTop + clientHeight;
+      if (isAtTheBottom) await handleNewsListMore();
+    };
+
+    const handleNewsListMore = async () => {
+      if (totalCount.value !== newsList.length) {
+        await addNewsList();
+      }
+    };
+
+    const kbColors = [
+      '#f8a809',
+      '#fab806',
+      '#6e6153',
+      '#4a483f',
+      '#816843',
+      '#848687',
+    ];
+
+    const colorByWeight = weight => {
+      const randomIndex = Math.floor(Math.random() * kbColors.length);
+      return kbColors[randomIndex];
+    };
+
+    return {
+      user,
+      newsList,
+      handleNewsListScroll,
+      keywords,
+      colorByWeight,
+    };
   },
 };
 </script>
@@ -99,10 +160,6 @@ export default {
 #accident-keyword {
   width: 100%;
   height: 200px;
-  background-color: #e5e5e5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 #news-list {
