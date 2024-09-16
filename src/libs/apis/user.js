@@ -6,8 +6,6 @@ export const loginUser = async nickname => {
     const res = await instance.post('/users/login', {
       nickname,
     });
-    const store = useUserStore();
-    store.setAccessToken(res.headers.accesstoken);
     return res.data;
   } catch (error) {
     return error.response.data;
@@ -31,8 +29,15 @@ export const signUpUser = async (
       wishPropertyPrice,
       wishPropertySize,
     });
-    const store = useUserStore();
-    store.setAccessToken(res.headers.accesstoken);
+    return res.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
+export const fetchUser = async () => {
+  try {
+    const res = await instance.get('/users');
     return res.data;
   } catch (error) {
     return error.response.data;
