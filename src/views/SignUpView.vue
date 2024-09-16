@@ -168,7 +168,7 @@ export default {
       if (!validatedInputs) return;
       if (route.path === '/users/edit') {
         await updateUser();
-      } else {  
+      } else {
         await clickSignupBtn();
       }
 

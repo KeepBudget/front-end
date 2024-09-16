@@ -58,6 +58,17 @@ export const updateUser = async (
   }
 };
 
+export const updateUserWishDistrict = async wishDistrictId => {
+  try {
+    const res = await instance.patch('/users/wish-district', {
+      wishDistrictId,
+    });
+    return res.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export const fetchUser = async () => {
   try {
     const res = await instance.get('/users');

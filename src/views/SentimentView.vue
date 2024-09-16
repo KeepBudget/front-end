@@ -46,9 +46,9 @@ export default {
     const totalCount = ref(null);
 
     const sections = reactive([
-      { label: 'negative', value: 25, color: '#ff4560' },
-      { label: 'neutral', value: 25, color: '#ffb01a' },
-      { label: 'positive', value: 50, color: '#008ffb' },
+      { label: 'negative', value: 0.25, color: '#ff4560' },
+      { label: 'neutral', value: 0.25, color: '#ffb01a' },
+      { label: 'positive', value: 0.5, color: '#008ffb' },
     ]);
 
     const selectedSection = ref(sections[1]);

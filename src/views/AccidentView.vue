@@ -1,4 +1,9 @@
 <template>
+  <CommonPopup :message="modalText" :clickBtn="modalFunc" v-if="isModal" />
+  <UpdateDistrictModal
+    :clickBtn="updateDistrictModalFunc"
+    v-if="isUpdateDistrictModal"
+  />
   <div id="accident-view">
     <CommonHeader />
     <div id="user">
@@ -6,7 +11,11 @@
         <div id="user-header-text">
           <span>{{ user.nickname }}님</span>의 희망지역
         </div>
-        <img src="@/assets/png/userEdit.png" alt="editBtn" />
+        <img
+          src="@/assets/png/userEdit.png"
+          alt="editBtn"
+          @click="editDistrictBtn"
+        />
       </div>
       <div id="user-body">
         <div id="user-body-text">
@@ -14,8 +23,13 @@
         </div>
       </div>
     </div>
-    <vue3-word-cloud style="height: 200px; width: 100%; padding: 3px" :words="keywords"
-      :color="([, weight]) => colorByWeight(weight)" font-family="Roboto" font-size-ratio="3" />
+    <vue3-word-cloud
+      style="height: 200px; width: 100%; padding: 3px"
+      :words="keywords"
+      :color="([, weight]) => colorByWeight(weight)"
+      font-family="Roboto"
+      :font-size-ratio="Number(3)"
+    />
     <div id="news-list" @scroll="handleNewsListScroll">
       <NewsComponent v-for="news in newsList" :key="news.id" :news="news" />
     </div>
@@ -25,18 +39,25 @@
 <script>
 import CommonHeader from '@/components/CommonHeader.vue';
 import NewsComponent from '@/components/NewsComponent.vue';
+import UpdateDistrictModal from '@/components/UpdateDistrictModal.vue';
 import { fetchNewsKeywords, fetchNewsList } from '@/libs/apis/news';
-import { fetchUser } from '@/libs/apis/user';
+import { fetchUser, updateUserWishDistrict } from '@/libs/apis/user';
 import { onMounted, reactive, ref } from 'vue';
 import vue3WordCloud from 'vue3-word-cloud';
+import CommonPopup from '@/components/CommonPopup.vue';
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
     CommonHeader,
     NewsComponent,
     vue3WordCloud,
+    UpdateDistrictModal,
+    CommonPopup,
   },
   setup() {
+    const router = useRouter();
+
     const user = ref({});
     const newsList = reactive([]);
     const page = ref(1);
@@ -88,12 +109,40 @@ export default {
       return kbColors[randomIndex];
     };
 
+    const editDistrictBtn = () => {
+      isUpdateDistrictModal.value = true;
+    };
+
+    const isModal = ref(false);
+    const modalText = ref('');
+    const modalFunc = () => {
+      isModal.value = false;
+    };
+
+    const isUpdateDistrictModal = ref(false);
+    const updateDistrictModalFunc = async wishDistrictId => {
+      const res = await updateUserWishDistrict(wishDistrictId);
+      if (res.success) {
+        isUpdateDistrictModal.value = false;
+        router.go(0);
+      } else {
+        isModal.value = true;
+        modalText.value = res.error.errorMessage;
+      }
+    };
+
     return {
       user,
       newsList,
       handleNewsListScroll,
       keywords,
       colorByWeight,
+      isUpdateDistrictModal,
+      updateDistrictModalFunc,
+      editDistrictBtn,
+      isModal,
+      modalText,
+      modalFunc,
     };
   },
 };
