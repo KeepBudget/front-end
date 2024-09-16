@@ -163,50 +163,50 @@ export default {
       return true;
     };
 
+    const clickUpdateUserBtn = async () => {
+      const res = await updateUser(
+        nickname.value,
+        wishDistrictId.value,
+        wishPropertyType.value,
+        wishTradeType.value,
+        wishPrice.value,
+        wishSize.value,
+      );
+      if (res.success) {
+        router.go(-1);
+      } else {
+        isModal.value = true;
+        modalText.value = res.error.errorMessage;
+      }
+    };
+
+    const clickSignupBtn = async () => {
+      const res = await signUpUser(
+        nickname.value,
+        wishDistrictId.value,
+        wishPropertyType.value,
+        wishTradeType.value,
+        wishPrice.value,
+        wishSize.value,
+      );
+      if (res.success) {
+        router.push({
+          name: 'real-price',
+        });
+      } else {
+        isModal.value = true;
+        modalText.value = res.error.errorMessage;
+      }
+    };
+
     const clickBtn = async () => {
       const validatedInputs = validateInputs();
       if (!validatedInputs) return;
       if (route.path === '/users/edit') {
-        await updateUser();
+        await clickUpdateUserBtn();
       } else {
         await clickSignupBtn();
       }
-
-      const updateUser = async () => {
-        const res = await updateUser(
-          nickname.value,
-          wishDistrictId.value,
-          wishPropertyType.value,
-          wishTradeType.value,
-          wishPrice.value,
-          wishSize.value,
-        );
-        if (res.success) {
-          router.go(-1);
-        } else {
-          isModal.value = true;
-          modalText.value = res.error.errorMessage;
-        }
-      };
-
-      const clickSignupBtn = async () => {
-        const res = await signUpUser(
-          nickname.value,
-          wishDistrictId.value,
-          wishPropertyType.value,
-          wishTradeType.value,
-          wishPrice.value,
-          wishSize.value,
-        );
-        if (res.success) {
-          router.push({
-            name: 'real-price',
-          });
-        } else {
-          isModal.value = true;
-          modalText.value = res.error.errorMessage;
-        }
-      };
     };
 
     return {
