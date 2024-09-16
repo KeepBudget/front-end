@@ -3,24 +3,26 @@
     <CommonHeader />
     <div id="user">
       <div id="user-header">
-        <div id="user-header-text"><span>홍길동님</span>의 희망지역</div>
+        <div id="user-header-text">
+          <span>{{ user.nickname }}님</span>의 희망지역
+        </div>
         <img src="@/assets/png/userEdit.png" alt="editBtn" />
       </div>
       <div id="user-body">
         <div id="user-body-text">
-          <div>서울시 강남구</div>
+          <div>서울시 {{ user.wishDistrict }}</div>
         </div>
       </div>
     </div>
-    <div id="sentiment-news-chart">차트 넣기</div>
-    <div id="news-list">
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
-      <NewsComponent />
+    <vc-donut :sections="sections" size="200" thickness="30" foreground="grey" total="1"
+      @section-click="handleSectionClick">
+      {{
+        selectedSection.label.charAt(0).toUpperCase() +
+        selectedSection.label.slice(1)
+      }}
+    </vc-donut>
+    <div id="news-list" @scroll="handleNewsListScroll">
+      <NewsComponent v-for="news in newsList" :key="news.id" :news="news" />
     </div>
   </div>
 </template>
@@ -28,6 +30,9 @@
 <script>
 import CommonHeader from '@/components/CommonHeader.vue';
 import NewsComponent from '@/components/NewsComponent.vue';
+import { fetchNewsList, fetchNewsSentiment } from '@/libs/apis/news';
+import { fetchUser } from '@/libs/apis/user';
+import { onMounted, reactive, ref } from 'vue';
 
 export default {
   components: {
@@ -35,7 +40,72 @@ export default {
     NewsComponent,
   },
   setup() {
-    return {};
+    const user = ref({});
+    const newsList = reactive([]);
+    const page = ref(1);
+    const totalCount = ref(null);
+
+    const sections = reactive([
+      { label: 'negative', value: 25, color: '#ff4560' },
+      { label: 'neutral', value: 25, color: '#ffb01a' },
+      { label: 'positive', value: 50, color: '#008ffb' },
+    ]);
+
+    const selectedSection = ref(sections[1]);
+
+    const addNewsList = async () => {
+      const fetchedNewsList = await fetchNewsList(
+        page.value,
+        20,
+        'PROPERTY',
+        selectedSection.value.label.toUpperCase(),
+      );
+      totalCount.value = fetchedNewsList.response.pageNation.totalCount;
+      fetchedNewsList.response.news.forEach(news => {
+        newsList.push(news);
+      });
+      page.value += 1;
+    };
+
+    onMounted(async () => {
+      const userRes = await fetchUser();
+      user.value = userRes.response;
+      await addNewsList();
+      const fetchedNewsSentiment = await fetchNewsSentiment();
+      sections.forEach(section => {
+        if (fetchedNewsSentiment.response[section.label] !== undefined) {
+          section.value = fetchedNewsSentiment.response[section.label];
+        }
+      });
+    });
+
+    const handleNewsListScroll = async e => {
+      const { scrollHeight, scrollTop, clientHeight } = e.target;
+      const isAtTheBottom = scrollHeight === scrollTop + clientHeight;
+      if (isAtTheBottom) await handleNewsListMore();
+    };
+
+    const handleNewsListMore = async () => {
+      if (totalCount.value !== newsList.length) {
+        await addNewsList();
+      }
+    };
+
+    const handleSectionClick = async section => {
+      selectedSection.value = section;
+      newsList.length = 0;
+      page.value = 1;
+      await addNewsList();
+    };
+
+    return {
+      user,
+      newsList,
+      handleNewsListScroll,
+      sections,
+      selectedSection,
+      handleSectionClick,
+    };
   },
 };
 </script>

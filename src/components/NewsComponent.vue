@@ -1,6 +1,8 @@
 <template>
   <div id="news-component" @click="clickNewsComponent(news.originUrl)">
-    <img id="news-img" :src="news.imgUrl" v-show="news.imgUrl !== null" />
+    <template v-if="news">
+      <img id="news-img" :src="news.imgUrl" />
+    </template>
     <div id="news-content">
       <div id="news-title">
         {{ news.title }}

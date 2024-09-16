@@ -46,7 +46,6 @@ export default {
     const addNewsList = async () => {
       const fetchedNewsList = await fetchNewsList(page.value, 20, 'ACCIDENT');
       totalCount.value = fetchedNewsList.response.pageNation.totalCount;
-      console.log(fetchedNewsList.response);
       fetchedNewsList.response.news.forEach(news => {
         newsList.push(news);
       });
@@ -58,7 +57,6 @@ export default {
       user.value = userRes.response;
       await addNewsList();
       const fetchedNewsKeywords = await fetchNewsKeywords();
-      console.log(fetchedNewsKeywords.response);
       fetchedNewsKeywords.response.forEach(news => {
         keywords.push([news.name, Number(news.value)]);
       });

@@ -19,3 +19,12 @@ export const fetchNewsKeywords = async () => {
     return error.response.data;
   }
 };
+
+export const fetchNewsSentiment = async () => {
+  try {
+    const res = await instance.get('/news/sentiment');
+    return res.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
