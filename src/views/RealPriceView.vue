@@ -4,27 +4,25 @@
     <div id="user">
       <div id="user-header">
         <div id="user-header-text">
-          <span>{{ nickname }}님</span>의 희망사항
+          <span>{{ user.nickname }}님</span>의 희망사항
         </div>
         <img src="@/assets/png/userEdit.png" alt="editBtn" />
       </div>
       <div id="user-body">
         <div id="user-body-text">
-          <div><span>지역</span>서울시 강남구</div>
-          <div><span>형태</span>아파트 매매</div>
-          <div><span>가격</span>0억 0000만원 이내</div>
-          <div><span>평수</span>25평</div>
+          <div><span>지역</span>서울시 {{ user.wishDistrict }}</div>
+          <div>
+            <span>형태</span>{{ user.wishPropertyType }}
+            {{ user.wishTradeType }}
+          </div>
+          <div><span>가격</span>{{ user.wishPropertyPrice }}만원 이내</div>
+          <div><span>평수</span>{{ user.wishPropertySize }}평</div>
         </div>
         <img src="@/assets/png/character.png" alt="캐릭터" />
       </div>
     </div>
-    <div id="properties">
-      <RecommendProperty />
-      <RecommendProperty />
-      <RecommendProperty />
-      <RecommendProperty />
-      <RecommendProperty />
-      <RecommendProperty />
+    <div id="properties" @scroll="handlePropertiesScroll">
+      <RecommendProperty v-for="property in properties" :key="property.id" :property="property" />
     </div>
   </div>
 </template>
@@ -32,7 +30,9 @@
 <script>
 import CommonHeader from '@/components/CommonHeader.vue';
 import RecommendProperty from '@/components/RecommendProperty.vue';
-import { ref } from 'vue';
+import { fetchProperties } from '@/libs/apis/property';
+import { fetchUser } from '@/libs/apis/user';
+import { onMounted, reactive, ref } from 'vue';
 
 export default {
   components: {
@@ -40,9 +40,42 @@ export default {
     RecommendProperty,
   },
   setup() {
-    const nickname = ref('홍길동');
+    const user = ref({});
+    const properties = reactive([]);
+    const page = ref(1);
+    const totalCount = ref(null);
+
+    const addProperties = async () => {
+      const fetchedProperties = await fetchProperties(page.value, 20);
+      totalCount.value = fetchedProperties.response.pageNation.totalCount;
+      fetchedProperties.response.properties.forEach(property => {
+        properties.push(property);
+      });
+      page.value += 1;
+    };
+
+    onMounted(async () => {
+      const userRes = await fetchUser();
+      user.value = userRes.response;
+      await addProperties();
+    });
+
+    const handlePropertiesScroll = async e => {
+      const { scrollHeight, scrollTop, clientHeight } = e.target;
+      const isAtTheBottom = scrollHeight === scrollTop + clientHeight;
+      if (isAtTheBottom) await handlePropertiesMore();
+    };
+
+    const handlePropertiesMore = async () => {
+      if (totalCount.value !== properties.length) {
+        await addProperties();
+      }
+    };
+
     return {
-      nickname,
+      user,
+      properties,
+      handlePropertiesScroll,
     };
   },
 };
@@ -110,6 +143,7 @@ export default {
 }
 
 #properties::-webkit-scrollbar {
-  display: none; /* for Chrome, Safari, and Opera */
+  display: none;
+  /* for Chrome, Safari, and Opera */
 }
 </style>

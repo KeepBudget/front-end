@@ -1,16 +1,36 @@
 <template>
   <div id="recommend-property-component">
-    <div id="title">한신타워 8층</div>
-    <div>서울특별시 서초구 잠원동 장원로 3길 8</div>
-    <div>가격 : 0억 0000만원</div>
-    <div>평수 : 00.00평</div>
+    <div id="title">{{ property.buildingName }} {{ property.floor }} 층</div>
+    <div>서울특별시 {{ property.address }}</div>
+    <div>가격 : {{ changePriceFormat(property.price) }}원</div>
+    <div>평수 : {{ property.size.toFixed(2) }}평</div>
   </div>
 </template>
 
 <script>
 export default {
+  props: {
+    property: {
+      type: Object,
+    },
+  },
   setup() {
-    return {};
+    const changePriceFormat = price => {
+      const hundredMillion = Math.floor(price / 10000);
+      const tenThousand = price % 10000;
+      let changedPriceFormat = '';
+      if (hundredMillion !== 0) {
+        changedPriceFormat += hundredMillion + '억 ';
+      }
+      if (tenThousand !== 0) {
+        changedPriceFormat += tenThousand + '만';
+      }
+      return changedPriceFormat;
+    };
+
+    return {
+      changePriceFormat,
+    };
   },
 };
 </script>
